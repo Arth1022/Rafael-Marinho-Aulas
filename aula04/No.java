@@ -1,18 +1,16 @@
+package aula04;
+
 public class No<T>{
     private T dado;
     private No<T> nextNo;
 
-    public  No(){
-        this(null, null);
+    public No(){
+        this(null);
     }
 
-    public  No(T dado){
-        this(dado, null);
-    }
-
-    public No(T dado, No<T> nextno){
+    public No(T dado){
         this.dado = dado;
-        this.nextNo = nextNo;
+        this.nextNo = null;
     }
 
     public void setDado(T dado){
@@ -33,6 +31,6 @@ public class No<T>{
 
     @Override
     public String toString(){
-        return ("Dado: " + getDado());
+        return "Dado{ " + getDado() + "}";
     }
 }
