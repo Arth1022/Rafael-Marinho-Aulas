@@ -1,3 +1,5 @@
+import pilha.No;
+
 public class Lista<T>{
     private No<T> primeiroNo;
     private No<T> ultimoNo;
