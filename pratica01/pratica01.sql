@@ -1,22 +1,19 @@
--- Active: 1789596482840@@127.0.0.1@5432@bd_hortifruti
-CREATE 
-DATABASE
-bd_hortifruti
+-- Active: 1790205737470@@127.0.0.1@5432@bd_hortifruti
+
+--CREATE DATABASE bd_hortifruti--
 
 DROP TABLE IF EXISTS itens_venda;
 CREATE TABLE itens_venda (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     venda_id INTEGER NOT NULL,
     data_venda DATE NOT NULL,
-    bairro_entrega TEXT, --Não é obrigatoria ja que a venda pode ter sido feit direto no mercado
+    bairro_entrega TEXT, --Não é obrigatoria ja que a venda pode ter sido feita direto no mercado
     produto_id INTEGER,
     produto_nome TEXT NOT NULL,
     categoria TEXT NOT NULL,
     unidade TEXT NOT NULL,
     quantidade NUMERIC(10, 3) NOT NULL, --Peso dos vegetais variam muito, mantemos 3 casas depois da ,
     valor_unitario NUMERIC(10, 2) NOT NULL  --Limitados para apenas 2 numeros depois da , (Padrão para R$)
-
-
 );
 
 INSERT INTO itens_venda
@@ -69,24 +66,19 @@ INSERT INTO itens_venda
      categoria, unidade, quantidade, valor_unitario)
 VALUES
 (3017, '2026-08-08', NULL, 5 , 'Tomate','Legume', 'Kg', 1.340, 8.99 ),
-(3017, '2026-08-08', NULL,  10 , 'Alface crespa', 'Verdura', 'UN', 1.340, 3.49),
-(3017, '2026-08-08', NULL,  31 , 'morango ', 'Fruta', 'UN', 1.340, 9.90);
+(3017, '2026-08-08', NULL, 10 , 'Alface crespa', 'Verdura', 'UN', 2, 3.49),
+(3017, '2026-08-08', NULL, 4 , 'Morango ', 'Fruta', 'UN', 1, 9.90);
 
  SELECT * FROM itens_venda
 
  --Consulta 1-
- SELECT
+ SELECT DISTINCT
     produto_id,
     produto_nome,
     categoria,
     unidade
  FROM
     itens_venda
- GROUP BY
-    produto_id,
-    produto_nome,
-    unidade,
-    categoria
 ORDER BY
     categoria,
     produto_nome;
@@ -106,7 +98,7 @@ ORDER BY
     valor_unitario DESC, 
     venda_id;
 
-    --Consulta 3--
+--Consulta 3--
 
 SELECT
     venda_id,
@@ -116,78 +108,165 @@ SELECT
 FROM
     itens_venda
 WHERE
-    produto_nome LIKE ('Batata%') AND bairro_entrega IS NOT NULL
+    produto_nome LIKE ('Batata%')
 ORDER BY
     data_venda,
     venda_id;
     
 --Consulta 4-
-SELECT
+SELECT DISTINCT
     venda_id,
     data_venda,
     bairro_entrega
 FROM
     itens_venda
 WHERE
-    bairro_entrega IS NOT NULL;
+    bairro_entrega IS NOT NULL
+ORDER BY
+    venda_id;
 
 
 --Consulta 5--   
 
-SELECT
-    venda_id,
-    produto_nome,
-    SUM(quantidade) as qtd_total,
-    ROUND(SUM(quantidade * valor_unitario),2) AS total_vendas,
-    valor_unitario
-    unidade
-FROM
+SELECT 
+    venda_id, 
+    produto_nome, 
+    quantidade, 
+    unidade, 
+    valor_unitario,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS valor_item
+FROM 
     itens_venda
 GROUP BY
     venda_id,
+    unidade,
+    valor_unitario,
     produto_nome,
-    valor_unitario
-ORDER BY
-    total_vendas DESC;
+    quantidade
+ORDER BY 
+    valor_item DESC, 
+    venda_id
+LIMIT 5 OFFSET 5;
 
---Consulta 6--  Falta tratamento de NULL
-SELECT 
+--Consulta 6-- 
+SELECT
     venda_id, 
     data_venda, 
-    COALESCE(bairro_entrega, 'Não informado') AS destino,
-    quantidade AS itens, 
-    SUM(quantidade * valor_unitario) AS valor_total, 
-    valor_unitario, 
-    unidade 
+    COALESCE(bairro_entrega, 'Retirada no balcao') AS destino,
+    COUNT(itens_venda) AS itens,
+    SUM(quantidade * valor_unitario) AS valor_total
 FROM 
     itens_venda 
 GROUP BY 
-    venda_id, 
-    data_venda, 
-    bairro_entrega, 
-    quantidade, 
-    valor_unitario, 
-    unidade
+    venda_id,
+    data_venda,
+    destino
 ORDER BY 
     valor_total DESC;
 
 --Consulta 7--
-SELECT
+SELECT DISTINCT
     data_venda,
-    venda_id AS venda,
-    quantidade AS itens,
-    ROUND(SUM(quantidade * valor_unitario),2) as faturamento
+    COUNT(venda_id) AS vendas,
+    COUNT(itens_venda) AS itens,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
+FROM 
+    itens_venda
+GROUP BY 
+    data_venda
+ORDER BY 
+    data_venda;
+
+-- Consulta 8
+SELECT
+    produto_id,
+    produto_nome,
+    unidade,
+    SUM(quantidade) AS qtd_total,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento,
+    ROUND(AVG(valor_unitario), 2) AS media_simples,
+    ROUND(SUM(quantidade * valor_unitario) / SUM(quantidade), 2) AS media_ponderada
 FROM
     itens_venda
 GROUP BY
-    data_venda,
-    venda,
-    itens
+    produto_id,
+    produto_nome,
+    unidade
 ORDER BY
-    data_venda;
+    faturamento DESC;
+-- Consulta 9
+SELECT
+    categoria,
+    unidade,
+    COUNT(*) AS itens,
+    SUM(quantidade) AS qtd_total,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
+FROM
+    itens_venda
+GROUP BY
+    categoria,
+    unidade
+ORDER BY
+    categoria,
+    unidade;
 
---Consulta 8-- 
-    
+-- Consulta 10--
+SELECT 
+    bairro_entrega,
+    COUNT(venda_id),
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
+FROM
+    itens_venda
+WHERE
+    bairro_entrega IS NOT NULL
+GROUP BY
+    bairro_entrega
+HAVING
+    ROUND(SUM(quantidade * valor_unitario), 2) > 40
+ORDER BY
+    faturamento DESC;
+
+-- Consulta 11--
+
+SELECT
+    venda_id,
+    ROUND(SUM(quantidade * valor_unitario),2) AS total_arredondado,
+    SUM(ROUND(quantidade * valor_unitario,2)) AS soma_dos_itens_arredondados
+FROM
+    itens_venda
+GROUP BY
+    venda_id
+HAVING
+    ROUND(SUM(quantidade * valor_unitario),2) != SUM(ROUND(quantidade * valor_unitario,2))
+ORDER BY
+    venda_id ASC;
+
+--Questoes--
+
+--Questao 1--
+--As colunas data_venda, bairro_entrega são repetidas trazendo o mesmo dado diversas vezes.
+--As colunas produto_nome, categoria,unidade são dados que tambem se repetem varias vezes.
+--Podemos perceber que valor_unitario é volatil, então colocar ele como uma constante quebraria a tabela
+--Na consulta 1 : Quebrariamos o DISTINCT trazendo itens duplicados, quebrando a logica de trazer o cadastro dos itens
+--Na consulta 8 : Os dados seriam separados em dois produtos, quebrando os rank deles.
+
+--Questao 2--
+--O minimundo diz que uma venda precisa ter a quantidade vendida sempre maior que zero, mas eu posso inserir negativos nele.
+--A tabela não possui restrição UNIQUE(venda_id,produto_id) permitindo que o mesmo produto seja duplicado em linhas distintas da mesma venda
+INSERT INTO itens_venda
+    (venda_id, data_venda, bairro_entrega, produto_id, produto_nome,
+     categoria, unidade, quantidade, valor_unitario)
+VALUES (100, '2026-08-12', NULL, 1, 'Banana prata',  'Fruta',   'Kg',  -1, 5.99);
+
+--Questao 3--
+--Morango: Media ponderada menor que media simples: foram vendidas quantidades maiores nos dias em que
+--o preco unitario estava mais baixo.
+--Abacaxi: Media ponderada maior de media simples: Ele teve o volume maior de vendas nos dias em que seu valor
+--unitario estava mais alto
+--Cheiro-verde: media pondereda = simples: seu valor unitario manteve em 2,50 em todas as vendas. 
+
+
+
 
 
 

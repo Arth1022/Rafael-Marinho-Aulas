@@ -1,4 +1,4 @@
--- Active: 1787177433004@@127.0.0.1@5432@bd_aula@public
+-- Active: 1789607358588@@127.0.0.1@5432@bd_aula
 DROP TABLE IF EXISTS notas_alunos;
 
 CREATE TABLE notas_alunos(
@@ -159,3 +159,37 @@ FROM
     notas_alunos
 GROUP BY
     disciplina;
+
+
+SELECT
+    aluno_nome,
+    disciplina,
+    nota
+FROM
+    notas_alunos
+WHERE
+    turma = 'A';
+
+SELECT
+    turma,
+    COUNT(nota) AS qtd_avaliacao,
+    MAX(nota) AS maior_nota,
+    ROUND(AVG(faltas), 2)
+FROM
+    notas_alunos
+GROUP BY
+    turma;
+
+SELECT
+    disciplina,
+    nota,
+    aluno_nome
+FROM
+    notas_alunos
+WHERE
+    disciplina IN ('Matematica', 'Portugues') AND
+    nota BETWEEN 60 AND 80
+ORDER BY
+    disciplina,
+    nota DESC,
+    aluno_nome;

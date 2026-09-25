@@ -1,4 +1,4 @@
--- Active: 1788993732696@@127.0.0.1@5432@bd_vendas
+-- Active: 1789607358588@@127.0.0.1@5432@bd_vendas
 
 DROP TABLE IF EXISTS vendas_itens2;
 
@@ -131,3 +131,29 @@ GROUP BY
 ORDER BY
     data_venda;
 
+SELECT  * FROM vendas_itens2;
+
+SELECT
+    venda_id,
+    ROUND(SUM(quantidade*valor_unitario),2) AS valor_total
+FROM
+    vendas_itens2
+GROUP BY
+    venda_id
+HAVING
+    COUNT(produto_id) > 4
+ORDER BY
+    valor_total DESC;
+
+SELECT
+    venda_id,
+    data_venda
+FROM
+    vendas_itens2
+WHERE
+    data_venda <= '2025-09-08'
+GROUP BY
+    venda_id,
+    data_venda
+HAVING
+    SUM(quantidade*valor_unitario) > 650;

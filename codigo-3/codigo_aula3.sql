@@ -1,4 +1,4 @@
--- Active: 1788993732696@@127.0.0.1@5432@bd_vendas
+-- Active: 1789607358588@@127.0.0.1@5432@bd_vendas
 
 DROP TABLE IF EXISTS vendas_itens;
 
@@ -402,3 +402,19 @@ HAVING
     COUNT(*) >= 4
 ORDER BY
     venda_id;
+
+SELECT * FROM vendas_itens;
+
+SELECT
+    venda_id,
+    COUNT(produto_id) AS qtd_itens,
+    MAX(valor_unitario) AS maior_valor_unit,
+    SUM(valor_unitario) AS soma_valor_unit
+FROM
+    vendas_itens
+GROUP BY
+    venda_id
+HAVING
+    MAX(valor_unitario) > 200;
+
+
